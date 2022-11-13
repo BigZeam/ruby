@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 8477022030833133232}
   m_Layer: 0
   m_Name: Enemy
-  m_TagString: Untagged
+  m_TagString: Robot
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -152,7 +152,9 @@ MonoBehaviour:
   speed: 2
   vertical: 0
   changeTime: 3
+  level: 1
   smokeEffect: {fileID: 6596303670124242213}
+  fixedSound: {fileID: 8300000, guid: e7fa1971a86d60945bb64585c0ac14d5, type: 3}
 --- !u!95 &3535076342526436877
 Animator:
   serializedVersion: 4

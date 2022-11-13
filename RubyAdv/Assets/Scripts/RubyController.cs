@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class RubyController : MonoBehaviour
 {
@@ -9,6 +11,10 @@ public class RubyController : MonoBehaviour
     public int maxHealth = 5;
     
     public GameObject projectilePrefab;
+    
+    public GameObject hitEffect, eatEffect, winObj, loseObj, bkgMusic;
+
+    public Text fixedText, ammoText;
     
     public int health { get { return currentHealth; }}
     int currentHealth;
@@ -20,7 +26,10 @@ public class RubyController : MonoBehaviour
     Rigidbody2D rigidbody2d;
     float horizontal;
     float vertical;
-    
+
+    int numFixed = 0;
+    int ammo = 4;
+    bool gameOver;
     Animator animator;
     Vector2 lookDirection = new Vector2(1,0);
     
@@ -35,6 +44,8 @@ public class RubyController : MonoBehaviour
         
         currentHealth = maxHealth;
         audioSource= GetComponent<AudioSource>();
+
+        CheckFixed();
     }
 
     // Update is called once per frame
@@ -64,10 +75,17 @@ public class RubyController : MonoBehaviour
         
         if(Input.GetKeyDown(KeyCode.C))
         {
-            Launch();
-            PlaySound(cogClip);
+            if(ammo>1)
+            {
+                Launch();
+                PlaySound(cogClip);
+            }
+            
+            //Invoke("CheckFixed", .3f);
+            //Invoke("CheckFixed", .75f);
+            //Invoke("CheckFixed", 2f);
         }
-
+        CheckFixed();
         if (Input.GetKeyDown(KeyCode.X))
         {
             RaycastHit2D hit = Physics2D.Raycast(rigidbody2d.position + Vector2.up * 0.2f, lookDirection, 1.5f, LayerMask.GetMask("NPC"));
@@ -93,6 +111,7 @@ public class RubyController : MonoBehaviour
 
     public void ChangeHealth(int amount)
     {
+        GameObject effect = eatEffect;
         if (amount < 0)
         {
             if (isInvincible)
@@ -102,8 +121,9 @@ public class RubyController : MonoBehaviour
             invincibleTimer = timeInvincible;
             animator.SetTrigger("Hit");
             PlaySound(hitClip);
+            effect = hitEffect;
         }
-        
+        StartCoroutine(SpawnEffect(effect));
         currentHealth = Mathf.Clamp(currentHealth + amount, 0, maxHealth);
         UIHealthBar.instance.SetValue(currentHealth / (float)maxHealth);
     }
@@ -121,5 +141,53 @@ public class RubyController : MonoBehaviour
     public void PlaySound(AudioClip clip)
     {
         audioSource.PlayOneShot(clip);
+    }
+
+    IEnumerator SpawnEffect(GameObject g)
+    {
+        GameObject toDestroy = Instantiate(g, rigidbody2d.position + Vector2.up, Quaternion.identity);
+        yield return new WaitForSeconds(3f);
+        Destroy(toDestroy);
+    }
+    private void CheckFixed()
+    {
+        numFixed = 0;
+        GameObject[] bots = GameObject.FindGameObjectsWithTag("Robot");
+        foreach (GameObject bot in bots)
+        {
+            if(!bot.gameObject.GetComponent<EnemyController>().isBroken())
+                numFixed++;
+        }
+
+        fixedText.text = "Robots Fixed: " + numFixed + "/4";
+
+        if(numFixed == 4)
+        {
+            bkgMusic.SetActive(false);
+            winObj.SetActive(true);
+            if(Input.GetKeyDown(KeyCode.R))
+            {
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            }
+        }
+        if(health < 1)
+        {
+            bkgMusic.SetActive(false);
+            loseObj.SetActive(true);
+            speed = 0;
+            if(Input.GetKeyDown(KeyCode.R))
+            {
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            }
+        }
+    }
+
+    private void OnCollisionEnter2D(Collision2D other) {
+        if(other.gameObject.tag == "Ammo")
+        {
+            ammo+=4;
+            Destroy(other.gameObject);
+            ammoText.text = ammo.ToString();
+        }
     }
 }
