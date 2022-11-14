@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 public class RubyController : MonoBehaviour
 {
     public float speed = 3.0f;
+    public int level = 1;
     
     public int maxHealth = 5;
     
@@ -75,8 +76,10 @@ public class RubyController : MonoBehaviour
         
         if(Input.GetKeyDown(KeyCode.C))
         {
-            if(ammo>1)
+            if(ammo>0)
             {
+                ammo--;
+                ammoText.text = ammo.ToString();
                 Launch();
                 PlaySound(cogClip);
             }
@@ -94,7 +97,15 @@ public class RubyController : MonoBehaviour
                     NonPlayerCharacter character = hit.collider.GetComponent<NonPlayerCharacter>();
                     if (character != null)
                     {
-                        character.DisplayDialog();
+                        if(gameObject)
+                        {
+                            SceneManager.LoadScene(1);
+                        }
+                        else
+                        {
+                            character.DisplayDialog();
+                        }
+                        
                     }  
             }
         }
@@ -163,15 +174,21 @@ public class RubyController : MonoBehaviour
 
         if(numFixed == 4)
         {
-            bkgMusic.SetActive(false);
+            gameOver = true;
+            
             winObj.SetActive(true);
-            if(Input.GetKeyDown(KeyCode.R))
+            if(level == 2)
+                bkgMusic.SetActive(false);
+              
+            if(Input.GetKeyDown(KeyCode.R) && level == 2)
             {
+                
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
         }
         if(health < 1)
         {
+            gameOver = true;
             bkgMusic.SetActive(false);
             loseObj.SetActive(true);
             speed = 0;
