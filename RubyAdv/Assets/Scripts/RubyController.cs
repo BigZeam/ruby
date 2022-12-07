@@ -13,9 +13,9 @@ public class RubyController : MonoBehaviour
     
     public GameObject projectilePrefab;
     
-    public GameObject hitEffect, eatEffect, winObj, loseObj, bkgMusic;
+    public GameObject hitEffect, eatEffect, winObj, loseObj, bkgMusic, fastObj;
 
-    public Text fixedText, ammoText;
+    public Text fixedText, ammoText, fastText;
     
     public int health { get { return currentHealth; }}
     int currentHealth;
@@ -30,12 +30,14 @@ public class RubyController : MonoBehaviour
 
     int numFixed = 0;
     int ammo = 4;
-    bool gameOver;
+    int seconds;
+    float speedTime;
+    bool gameOver, fast;
     Animator animator;
     Vector2 lookDirection = new Vector2(1,0);
     
     AudioSource audioSource;
-    public AudioClip cogClip, hitClip;
+    public AudioClip cogClip, hitClip, reloadClip, eatClip;
 
     // Start is called before the first frame update
     void Start()
@@ -97,7 +99,7 @@ public class RubyController : MonoBehaviour
                     NonPlayerCharacter character = hit.collider.GetComponent<NonPlayerCharacter>();
                     if (character != null)
                     {
-                        if(gameObject)
+                        if(gameOver)
                         {
                             SceneManager.LoadScene(1);
                         }
@@ -109,6 +111,8 @@ public class RubyController : MonoBehaviour
                     }  
             }
         }
+
+        IShowSpeed();
     }
     
     void FixedUpdate()
@@ -134,6 +138,7 @@ public class RubyController : MonoBehaviour
             PlaySound(hitClip);
             effect = hitEffect;
         }
+ 
         StartCoroutine(SpawnEffect(effect));
         currentHealth = Mathf.Clamp(currentHealth + amount, 0, maxHealth);
         UIHealthBar.instance.SetValue(currentHealth / (float)maxHealth);
@@ -205,6 +210,58 @@ public class RubyController : MonoBehaviour
             ammo+=4;
             Destroy(other.gameObject);
             ammoText.text = ammo.ToString();
+            PlaySound(reloadClip);
+        }
+        if(other.gameObject.tag == "Boots")
+        {
+            StartCoroutine(SpeedBoost());
+            Destroy(other.gameObject);
         }
     }
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if(other.gameObject.tag == "Mud")
+        {
+            speed /=2;
+        }
+    }
+    private void OnTriggerExit2D(Collider2D other) {
+        if(other.gameObject.tag == "Mud")
+        {
+            speed = 3;
+        }
+    }
+    IEnumerator SpeedBoost()
+    {
+        speed = speed*2.2f;
+        fast = true;
+        speedTime = 6;
+        yield return new WaitForSeconds(5f);
+
+        speed = 3;
+        fast = false;
+    }
+    private void IShowSpeed()
+    {
+        if(fast)
+        {
+            if(speedTime < 0)
+            {
+                fastObj.SetActive(false);
+                return;
+            }
+            fastObj.SetActive(true);  
+            speedTime-=Time.deltaTime;
+            if(speedTime%60 == 0)
+                seconds--;
+
+            fastText.text = (int)speedTime + " Seconds left of speed";
+        }
+        if(!fast)
+        {
+            fastObj.SetActive(false);
+            return;
+        }
+    }
+    
 }

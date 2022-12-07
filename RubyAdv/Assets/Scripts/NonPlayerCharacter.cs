@@ -7,11 +7,13 @@ public class NonPlayerCharacter : MonoBehaviour
     public float displayTime = 4.0f;
     public GameObject dialogBox;
     float timerDisplay;
-    
+    AudioSource audioSource;
+    public AudioClip clip;
     void Start()
     {
         dialogBox.SetActive(false);
         timerDisplay = -1.0f;
+        audioSource = GetComponent<AudioSource>();
     }
     
     void Update()
@@ -28,6 +30,7 @@ public class NonPlayerCharacter : MonoBehaviour
     
     public void DisplayDialog()
     {
+        audioSource.PlayOneShot(clip);
         timerDisplay = displayTime;
         dialogBox.SetActive(true);
     }
